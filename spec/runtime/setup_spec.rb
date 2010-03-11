@@ -169,13 +169,32 @@ describe "Bundler.setup" do
   end
 
   # Rubygems returns loaded_from as a string
-  it "has loaded_from as a string on all specs" do
+  it "has loaded_from as a string on all specs when loading from disk" do
     build_git "foo"
 
     install_gemfile <<-G
       source "file://#{gem_repo1}"
       gem "rack"
       gem "foo", :git => "#{lib_path('foo-1.0')}"
+    G
+
+    run <<-R
+      Gem.loaded_specs.each do |n, s|
+        puts "FAIL" unless String === s.loaded_from
+      end
+    R
+
+    out.should be_empty
+  end
+
+  # Rubygems returns loaded_from as a string
+  it "has loaded_from as a string on all specs with a fake spec" do
+    build_git "foo", :gemspec => false, :path => lib_path('foo-no-gemspec')
+
+    install_gemfile <<-G
+      source "file://#{gem_repo1}"
+      gem "rack"
+      gem "foo", '1.1.0', :git => "#{lib_path('foo-no-gemspec')}"
     G
 
     run <<-R
