@@ -116,6 +116,20 @@ describe "Bundler.setup" do
       should_be_installed "rack 1.0.0"
       bundled_app('.bundle/environment.rb').should exist
     end
+
+    it "can work with git-based gems without gemspecs" do
+      build_git "foo", :gemspec => false, :path => lib_path('foo-no-gemspec')
+
+      install_gemfile <<-G
+        gem "foo", '1.1.0', :git => "#{lib_path('foo-no-gemspec')}"
+      G
+
+      bundle :lock
+
+      run "require '#{bundled_app('.bundle/environment.rb')}'"
+
+      err.should be_empty
+    end
   end
 
   describe "when excluding groups" do
